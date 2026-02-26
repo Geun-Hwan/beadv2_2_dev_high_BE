@@ -7,18 +7,22 @@ import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.prompt.Prompt
 import org.springframework.ai.chat.prompt.PromptTemplate
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
 @Service
 class AuctionBidFraudAiService(
-    private val chatClient: ChatClient,
-    @Qualifier("auctionBidFraudTemplate") private val auctionBidFraudTemplate: PromptTemplate,
+    private val chatClientProvider: ObjectProvider<ChatClient>,
+    @Qualifier("auctionBidFraudTemplate")
+    private val auctionBidFraudTemplateProvider: ObjectProvider<PromptTemplate>,
     private val objectMapper: ObjectMapper,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun assess(startBid: String?, recentBids: List<AuctionBidHistory>?): AuctionBidFraudAiResult? {
+        val chatClient = chatClientProvider.ifAvailable ?: return null
+        val auctionBidFraudTemplate = auctionBidFraudTemplateProvider.ifAvailable ?: return null
         return try {
             val prompt: Prompt = auctionBidFraudTemplate.create(
                 mapOf(
