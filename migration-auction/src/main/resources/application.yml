@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: migration-auction
+
+server:
+  port: 18081
