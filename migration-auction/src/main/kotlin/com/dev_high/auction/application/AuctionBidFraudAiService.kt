@@ -32,7 +32,7 @@ class AuctionBidFraudAiService(
             )
             val response = chatClient.prompt(prompt).call().chatResponse() ?: return null
             val generation = response.result ?: return null
-            val content = generation.output?.text
+            val content = generation.output.text
             if (content.isNullOrBlank()) return null
 
             val json = extractJson(content)

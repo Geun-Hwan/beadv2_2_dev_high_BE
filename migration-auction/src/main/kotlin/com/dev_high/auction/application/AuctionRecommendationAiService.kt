@@ -61,7 +61,7 @@ class AuctionRecommendationAiService(
                 .call()
                 .chatResponse()
                 ?: return null
-            val content = chatResponse.result?.output?.text
+            val content = chatResponse.result.output.text
             if (content.isNullOrBlank()) {
                 return null
             }

@@ -35,7 +35,8 @@ class AuctionSummaryCacheService(
 
     fun upsertIfRanked(auction: Auction?, liveState: AuctionLiveState?) {
         if (auction == null) return
-        val score = stringRedisTemplate.opsForZSet().score(RANKING_KEY, auction.id)
+        val auctionId = auction.id ?: return
+        val score = stringRedisTemplate.opsForZSet().score(RANKING_KEY, auctionId)
         if (score == null) return
         upsert(auction, liveState)
     }
