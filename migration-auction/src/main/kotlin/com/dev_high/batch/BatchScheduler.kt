@@ -34,7 +34,7 @@ class BatchScheduler(
     fun clearTodayRanking() {
         try {
             redisConnectionFactory.connection.use { connection ->
-                connection.flushDb()
+                connection.serverCommands().flushDb()
                 log.info("auction ranking redis db flushed at midnight")
             }
         } catch (e: Exception) {
