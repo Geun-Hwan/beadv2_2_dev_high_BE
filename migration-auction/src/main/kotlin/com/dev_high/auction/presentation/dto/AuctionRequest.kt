@@ -5,11 +5,11 @@ import java.math.BigDecimal
 import java.time.OffsetDateTime
 
 data class AuctionRequest(
-    val productId: String,
-    val startBid: BigDecimal,
-    val status: List<AuctionStatus>,
-    val auctionStartAt: OffsetDateTime,
-    val auctionEndAt: OffsetDateTime,
-    val sellerId: String,
-    val productName: String,
+    val productId: String?,
+    val startBid: BigDecimal?,
+    val status: List<AuctionStatus>?,
+    val auctionStartAt: OffsetDateTime?,
+    val auctionEndAt: OffsetDateTime?,
+    val sellerId: String?,
+    val productName: String?,
 )
