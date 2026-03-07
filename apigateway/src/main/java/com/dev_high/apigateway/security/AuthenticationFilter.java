@@ -55,7 +55,7 @@ public class AuthenticationFilter implements WebFilter {
         exchange.getAttributes().put(ENDPOINT_RULE, target);
         log.info("target : {}",target);
         if (!target.authRequired()) {
-            return chain.filter(exchange);
+            return propagateUserContextIfTokenPresent(exchange, chain);
         }
 
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
@@ -101,6 +101,41 @@ public class AuthenticationFilter implements WebFilter {
 
         return chain.filter(mutatedExchange)
                 .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
+    }
+
+    private Mono<Void> propagateUserContextIfTokenPresent(ServerWebExchange exchange, WebFilterChain chain) {
+        ServerHttpRequest request = exchange.getRequest();
+        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return chain.filter(exchange);
+        }
+
+        String token = authHeader.substring(7).trim();
+        try {
+            Claims claims = jwtProvider.parseToken(token);
+            String userId = claims.getSubject();
+            if (userId == null || userId.isBlank()) {
+                return chain.filter(exchange);
+            }
+
+            Set<String> roles = JwtClaimUtils.extractRoles(claims);
+            var authorities = roles.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .toList();
+            var authentication = new UsernamePasswordAuthenticationToken(userId, token, authorities);
+
+            ServerHttpRequest mutatedRequest = request.mutate()
+                    .headers(h -> h.remove(HEADER_USER_ID))
+                    .header(HEADER_USER_ID, userId)
+                    .build();
+            ServerWebExchange mutatedExchange = exchange.mutate().request(mutatedRequest).build();
+
+            return chain.filter(mutatedExchange)
+                    .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
+        } catch (Exception e) {
+            // auth_required=false 경로에서는 유효하지 않은 토큰이어도 익명 요청으로 통과.
+            return chain.filter(exchange);
+        }
     }
 
     private EndpointRule selectMostSpecific(List<EndpointRule> candidates, String requestPath) {

@@ -4,6 +4,7 @@ import com.dev_high.apigateway.repository.EndpointPolicyRepository;
 import com.dev_high.apigateway.repository.dto.EndpointRule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -26,9 +27,16 @@ public class EndpointRuleCache {
     private final AtomicReference<Map<String, List<EndpointRule>>> cacheRef = new AtomicReference<>(Map.of());
     private final PathPatternParser parser = new PathPatternParser();
     private final AtomicLong lastLoadedVersion = new AtomicLong(-1);
+    @Value("${app.gateway.auth-bypass:false}")
+    private boolean authBypass;
 
     @EventListener(ApplicationReadyEvent.class)
     public void warmUp() {
+        if (authBypass) {
+            lastLoadedVersion.set(0);
+            log.info("auth-bypass 활성화로 Rule 캐시 로딩을 건너뜁니다.");
+            return;
+        }
         reload()
                 .subscribeOn(Schedulers.boundedElastic())
                 .doOnError(e -> log.error("Rule 캐시 초기 로딩 실패", e))
@@ -36,6 +44,9 @@ public class EndpointRuleCache {
     }
 
     public Mono<Void> reload() {
+        if (authBypass) {
+            return Mono.empty();
+        }
         return repository.getRuleVersion()
                 .defaultIfEmpty(0L)
                 .flatMap(ver -> {

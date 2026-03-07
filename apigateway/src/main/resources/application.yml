@@ -3,6 +3,9 @@ spring:
     name: apigateway
   profiles:
     active: ${env.SPRING_PROFILES_ACTIVE:local}
+app:
+  gateway:
+    auth-bypass: ${APP_GATEWAY_AUTH_BYPASS:false}
 server:
   port: 8000
 
@@ -15,6 +18,10 @@ spring:
     import:
       - optional:configserver:http://localhost:8888
       - optional:file:.env[.properties]
+
+app:
+  gateway:
+    auth-bypass: false
 
 ---
 spring:

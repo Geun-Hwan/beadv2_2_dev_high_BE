@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-@Table(name = "deposit", schema = "deposit", uniqueConstraints = { @UniqueConstraint(name = "uk_deposit_user_id", columnNames = {"user_id"}) })
+@Table(name = "deposit", schema = "user")
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

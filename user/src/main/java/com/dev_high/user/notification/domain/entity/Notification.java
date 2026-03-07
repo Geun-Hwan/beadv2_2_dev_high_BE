@@ -14,13 +14,13 @@ import lombok.NoArgsConstructor;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 
-@Schema(description = "알림")
-@Table(name = "notification", schema = "\"user\"")
+
+@Table(name = "notification", schema = "user")
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification{
-    @Schema(description = "알림 ID")
+
     @Id
     @Column(name = "id", length = 20)
     @CustomGeneratedId(method = "notification")

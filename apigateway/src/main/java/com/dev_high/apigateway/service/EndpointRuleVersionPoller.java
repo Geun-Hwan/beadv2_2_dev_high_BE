@@ -5,6 +5,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
@@ -20,10 +21,16 @@ public class EndpointRuleVersionPoller {
     private final EndpointPolicyRepository repository;
     private final EndpointRuleCache cache;
     private final EndpointRuleChangeListener listener;
+    @Value("${app.gateway.auth-bypass:false}")
+    private boolean authBypass;
     private Disposable worker;
 
     @PostConstruct
     public void start() {
+        if (authBypass) {
+            log.info("auth-bypass 활성화로 Rule 버전 폴러를 비활성화합니다.");
+            return;
+        }
         worker = Flux.interval(POLL_INTERVAL)
                 .flatMap(tick -> repository.getRuleVersion()
                         .onErrorResume(e -> {

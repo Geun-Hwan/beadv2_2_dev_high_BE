@@ -7,6 +7,7 @@ import io.r2dbc.spi.ConnectionFactory;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -32,6 +33,8 @@ public class EndpointRuleChangeListener {
 
     private final AtomicBoolean reloadRunning = new AtomicBoolean(false);
     private final AtomicBoolean reloadPending = new AtomicBoolean(false);
+    @Value("${app.gateway.auth-bypass:false}")
+    private boolean authBypass;
 
     private Disposable reloadWorker;
     private Disposable listenWorker;
@@ -54,6 +57,10 @@ public class EndpointRuleChangeListener {
 
     @EventListener(ApplicationReadyEvent.class)
     public void startOnReady() {
+        if (authBypass) {
+            log.info("auth-bypass 활성화로 Rule 변경 LISTEN 워커를 비활성화합니다.");
+            return;
+        }
         reloadWorker = reloadSignals.asFlux()
                 .publishOn(Schedulers.boundedElastic())
                 .concatMap(this::triggerReload)

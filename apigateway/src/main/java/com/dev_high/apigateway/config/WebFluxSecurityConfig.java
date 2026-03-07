@@ -17,7 +17,6 @@ import java.util.List;
 @Configuration
 @EnableWebFluxSecurity
 public class WebFluxSecurityConfig {
-
     private final static String[] PERMITALL_ANTPATTERNS = {
             "/", "/csrf",
             "/?*-service/swagger-ui/**",
